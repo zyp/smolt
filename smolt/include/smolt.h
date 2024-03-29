@@ -154,6 +154,15 @@ namespace smolt {
         constexpr void serialize(transport_t& transport, T value) requires std::same_as<T, float> {
             transport.log_value(std::bit_cast<uint32_t>(value));
         }
+
+        // 64b integers and double.
+        template <concepts::transport transport_t, typename T>
+        constexpr void serialize(transport_t& transport, T value) requires (std::same_as<T, std::int64_t> || std::same_as<T, std::uint64_t> || std::same_as<T, double>) {
+            uint64_t buf = std::bit_cast<uint64_t>(value);
+
+            transport.log_value(static_cast<uint32_t>(buf >> 32));
+            transport.log_value(static_cast<uint32_t>(buf));
+        }
     }
 
     // Logger.

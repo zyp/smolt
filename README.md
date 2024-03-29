@@ -16,7 +16,7 @@ The host side utilities can then use the tag ID to look up all the metadata from
 
 ## Features
 - Formatting of values on the host with [Python's format string syntax](https://docs.python.org/3/library/string.html#formatstrings).
-  - Currently supports integral and floating point types up to 32 bit.
+  - Currently supports integral and floating point types up to 64 bit.
 - Optional metadata attached to messages.
   - Source location.
 - Pluggable transports.
@@ -34,7 +34,6 @@ The host side utilities can then use the tag ID to look up all the metadata from
 
 ## TODO
 - Support for more argument types:
-  - `uint64_t`, `int64_t`, `double`
   - `std::string_view`
   - `std::span`
     - With a custom formatter that allows e.g. formatting buffers as hex bytes.

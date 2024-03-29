@@ -9,6 +9,22 @@ from typing import List
 
 import struct
 
+type_struct_formats = {
+    'char': '<b3x',
+    'signed char': '<b3x',
+    'unsigned char': '<B3x',
+    'short': '<h2x',
+    'unsigned short': '<H2x',
+    'int': '<i',
+    'unsigned int': '<I',
+    'long': '<l',
+    'unsigned long': '<L',
+    'long long': '<q',
+    'unsigned long long': '<Q',
+    'float': '<f',
+    'double': '<d',
+}
+
 @dataclass
 class Tag:
     addr: int
@@ -19,11 +35,11 @@ class Tag:
     def message(self, it):
         args = []
         for arg_type in self.args:
-            value = next(it) % (2**32)
-            if arg_type == 'float':
-                value, = struct.unpack('<f', struct.pack('<I', value))
-            elif not 'unsigned' in arg_type and value >= 2**31:
-                value -= 2**32
+            st = struct.Struct(type_struct_formats[arg_type])
+            buf = bytearray()
+            for _ in range(0, st.size, 4):
+                buf.extend((next(it) % 2**32).to_bytes(4, 'little'))
+            value, = st.unpack(buf)
             args.append(value)
 
         return Message(self, args)
