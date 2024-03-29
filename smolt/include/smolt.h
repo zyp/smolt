@@ -47,8 +47,14 @@ namespace smolt {
         constexpr void is_meta(meta::args_v0<T...>) {}
 
         template <typename T>
-        concept is_meta_type = requires(T t) {
+        concept meta = requires(T t) {
             { is_meta(t) };
+        };
+
+        template <typename T>
+        concept transport = requires(T t, uint32_t v) {
+            { t.log_tag(v) };
+            { t.log_value(v) };
         };
 
         template <typename T>
@@ -63,7 +69,7 @@ namespace smolt {
 
     template <auto... t>
     void tag(tag_marker) {
-        static_assert ((concepts::is_meta_type<decltype(t)> && ...), "Argument is not a valid tag metadata type.");
+        static_assert ((concepts::meta<decltype(t)> && ...), "Argument is not a valid tag metadata type.");
     }
 
     // Transports.
@@ -129,34 +135,42 @@ namespace smolt {
         }
     }
 
-    // Logger.
-    template <typename transport_t>
-    struct logger {
-        transport_t transport;
-
-        void log_tag(tag_id tag) const {
-            transport.log_tag(std::bit_cast<uint32_t>(tag));
+    // Serializers.
+    namespace serializer {
+        // Tag ID.
+        template <concepts::transport transport_t>
+        constexpr void serialize_tag(transport_t& transport, tag_id id) {
+            transport.log_tag(std::bit_cast<uint32_t>(id));
         }
 
-        template <std::integral T>
-        void log_value(T value) const requires (sizeof(T) <= sizeof(uint32_t)) {
+        // Integral types <= 32b.
+        template <concepts::transport transport_t, std::integral T>
+        constexpr void serialize(transport_t& transport, T value) requires (sizeof(T) <= sizeof(uint32_t)) {
             transport.log_value(static_cast<uint32_t>(value));
         }
 
-        void log_value(float value) const {
+        // float.
+        template <concepts::transport transport_t, typename T>
+        constexpr void serialize(transport_t& transport, T value) requires std::same_as<T, float> {
             transport.log_value(std::bit_cast<uint32_t>(value));
         }
+    }
 
-        void log_values() const {}
+    // Logger.
+    template <concepts::transport transport_t>
+    struct logger {
+        transport_t transport;
+
+        constexpr void log_values() const {}
 
         template <typename T, typename... U>
-        void log_values(T arg, U... args) const {
+        constexpr void log_values(T arg, U... args) const {
             log_values(args...);
-            log_value(arg);
+            serializer::serialize(transport, arg);
         }
 
-        template <meta::fmt_v0 str, meta::loc_v0 loc = {}, typename... T>
-        void log(T... args) const {
+        template <typename... T>
+        constexpr void log_internal(tag_id id, T... args) const {
             if constexpr (concepts::has_enabled<transport_t>) {
                 if (!transport.enabled()) {
                     return;
@@ -164,11 +178,29 @@ namespace smolt {
             }
 
             log_values(args...);
-            log_tag(tag<str, loc, meta::args_v0<T...>{}>);
+            serializer::serialize_tag(transport, id);
+        }
+
+        // Format string and arguments.
+        template <meta::fmt_v0 str, typename... T>
+        constexpr void log(T... args) const {
+            log_internal(tag<str, meta::args_v0<T...>{}>, args...);
+        }
+
+        // Format string, location and arguments.
+        template <meta::fmt_v0 str, meta::loc_v0 loc, typename... T>
+        constexpr void log(T... args) const {
+            log_internal(tag<str, loc, meta::args_v0<T...>{}>, args...);
+        }
+
+        // Location only.
+        template <meta::loc_v0 loc>
+        constexpr void log() const {
+            log_internal(tag<loc>);
         }
     };
 
     // Do the right thing whether the transport is passed as a reference or a rvalue.
-    template <typename transport_t>
+    template <concepts::transport transport_t>
     logger(transport_t&&) -> logger<transport_t>;
 }
