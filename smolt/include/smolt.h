@@ -7,6 +7,9 @@
 #include <source_location>
 #include <concepts>
 #include <cstdint>
+#include <cstring>
+#include <span>
+#include <string_view>
 
 namespace smolt {
     // Internal utilities.
@@ -162,6 +165,29 @@ namespace smolt {
 
             transport.log_value(static_cast<uint32_t>(buf >> 32));
             transport.log_value(static_cast<uint32_t>(buf));
+        }
+
+        // std::span.
+        template <concepts::transport transport_t, typename T, std::size_t Extent>
+        constexpr void serialize(transport_t& transport, std::span<T, Extent> data) {
+            auto bytes = std::as_bytes(data);
+            for(std::size_t offset = (bytes.size() + 3) & ~3; offset;) {
+                offset -= 4;
+                auto chunk = bytes.subspan(offset, std::min<std::size_t>(4, bytes.size() - offset));
+                uint32_t value = 0;
+                std::memcpy(&value, chunk.data(), chunk.size());
+                transport.log_value(value);
+            }
+
+            if (data.extent == std::dynamic_extent) {
+                transport.log_value(data.size());
+            }
+        }
+
+        // std::basic_string_view.
+        template <concepts::transport transport_t, typename T>
+        constexpr void serialize(transport_t& transport, std::basic_string_view<T> data) {
+            serialize(transport, std::span(data));
         }
     }
 

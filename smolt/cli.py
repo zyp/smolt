@@ -18,7 +18,7 @@ def list(elf):
     '''Read ELF file and list available tags.'''
 
     for tag in ELF(elf).tags():
-        print(f'{tag.addr:08x}: {tag.loc} "{tag.fmt}", {", ".join(tag.args)}')
+        print(f'{tag.addr:08x}: {tag.loc} "{tag.fmt}", {", ".join(str(a) for a in tag.args)}')
 
 @cli.command()
 @click.argument('elf', type=click.Path(exists = True, dir_okay = False, path_type = pathlib.Path))

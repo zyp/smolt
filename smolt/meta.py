@@ -10,20 +10,46 @@ from typing import List
 import struct
 
 type_struct_formats = {
-    'char': '<b3x',
-    'signed char': '<b3x',
-    'unsigned char': '<B3x',
-    'short': '<h2x',
-    'unsigned short': '<H2x',
-    'int': '<i',
-    'unsigned int': '<I',
-    'long': '<l',
-    'unsigned long': '<L',
-    'long long': '<q',
-    'unsigned long long': '<Q',
-    'float': '<f',
-    'double': '<d',
+    'char': 'b',
+    'signed char': 'b',
+    'unsigned char': 'B',
+    'short': 'h',
+    'unsigned short': 'H',
+    'int': 'i',
+    'unsigned int': 'I',
+    'long': 'l',
+    'unsigned long': 'L',
+    'long long': 'q',
+    'unsigned long long': 'Q',
+    'float': 'f',
+    'double': 'd',
 }
+
+def get_arg(type, it):
+    if type.name == 'span':
+        size = type.template_args[1].value
+        if size == 0xffffffff:
+            size = next(it) % 2**32
+        st = struct.Struct(f'<{size}' + type_struct_formats[type.template_args[0].name])
+        buf = bytearray()
+        for _ in range(0, st.size, 4):
+            buf.extend((next(it) % 2**32).to_bytes(4, 'little'))
+        values = st.unpack(buf[:st.size])
+        return list(values)
+    elif type.name == 'basic_string_view':
+        assert type.template_args[0].name == 'char'
+        size = next(it) % 2**32
+        buf = bytearray()
+        for _ in range(0, size, 4):
+            buf.extend((next(it) % 2**32).to_bytes(4, 'little'))
+        return buf[:size].decode('utf-8')
+    else:
+        st = struct.Struct('<' + type_struct_formats[type.name])
+        buf = bytearray()
+        for _ in range(0, st.size, 4):
+            buf.extend((next(it) % 2**32).to_bytes(4, 'little'))
+        value, = st.unpack(buf[:st.size])
+        return value
 
 @dataclass
 class Tag:
@@ -33,16 +59,7 @@ class Tag:
     loc: str
 
     def message(self, it):
-        args = []
-        for arg_type in self.args:
-            st = struct.Struct(type_struct_formats[arg_type])
-            buf = bytearray()
-            for _ in range(0, st.size, 4):
-                buf.extend((next(it) % 2**32).to_bytes(4, 'little'))
-            value, = st.unpack(buf)
-            args.append(value)
-
-        return Message(self, args)
+        return Message(self, [get_arg(type, it) for type in self.args])
 
 @dataclass
 class Message:
@@ -68,7 +85,7 @@ def parse_symbol(addr, symbol):
                 line = arg.values[1].value
                 loc = f'{filename}:{line}'
             case 'args_v0':
-                args = [str(t) for t in arg.type.template_args]
+                args = arg.type.template_args
 
     return Tag(addr, fmt, args, loc)
 

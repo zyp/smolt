@@ -17,6 +17,7 @@ The host side utilities can then use the tag ID to look up all the metadata from
 ## Features
 - Formatting of values on the host with [Python's format string syntax](https://docs.python.org/3/library/string.html#formatstrings).
   - Currently supports integral and floating point types up to 64 bit.
+  - Basic support for `std::span` and `std::string_view`.
 - Optional metadata attached to messages.
   - Source location.
 - Pluggable transports.
@@ -33,15 +34,18 @@ The host side utilities can then use the tag ID to look up all the metadata from
   - Read out and format log messages from a ringbuffer in target memory.
 
 ## TODO
+- Add a custom formatter for `std::span` that allows setting both an element formatting specifier and an element separator.
+- Platform-independent type markers.
 - Support for more argument types:
-  - `std::string_view`
-  - `std::span`
-    - With a custom formatter that allows e.g. formatting buffers as hex bytes.
+  - Pointers? (I.e. implicit conversion to `uintptr_t` and default formatting as hex.)
 - More transports:
   - `transport::tee`
     - Allows feeding a single logger into multiple transports.
 - More metadata that can be attached to messages:
   - Severity (info, warning, error, etc…).
+- CLI command that checks format string validity (i.e. whether the format specifiers are valid for the types of arguments passed).
+  Can be added to the end of the build process to allow catching typos in format strings at compile time.
+- More checks and error handling.
 - Documentation.
 - Tests.
 
