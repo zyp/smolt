@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:5539ea3a9a4a43d9bdd30ea2cc7347dcbae89922302efc68536b566fba322971"
+content_hash = "sha256:ca0186d39107017414943c7195949d42edb69f15302679099cbaae3bd68f25b7"
 
 [[package]]
 name = "click"
@@ -35,7 +35,7 @@ files = [
 
 [[package]]
 name = "cpp-symbol-parser"
-version = "0.1"
+version = "0.1.1"
 requires_python = ">=3.10"
 summary = "Parser for mangled C++ symbols"
 groups = ["default"]
@@ -43,8 +43,8 @@ dependencies = [
     "lark>=1.1.9",
 ]
 files = [
-    {file = "cpp_symbol_parser-0.1-py3-none-any.whl", hash = "sha256:a8fdafeacf8fd396117a29ebafce7996624c17430ec526fd478641f07aeacbfa"},
-    {file = "cpp_symbol_parser-0.1.tar.gz", hash = "sha256:579315b933c9b8262d9e081a64c6a2107b089371e9c437f69de775b16157bac1"},
+    {file = "cpp_symbol_parser-0.1.1-py3-none-any.whl", hash = "sha256:a6ff1806e08cedd42343be2f7270a36ff7d95a9a33934d2dd7d9353c3ff185a0"},
+    {file = "cpp_symbol_parser-0.1.1.tar.gz", hash = "sha256:72e2a4e3aa991c8e686f675862c838488d4cea38a6b9f59281d1c173217f24dd"},
 ]
 
 [[package]]

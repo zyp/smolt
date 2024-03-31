@@ -35,7 +35,6 @@ The host side utilities can then use the tag ID to look up all the metadata from
 
 ## TODO
 - Add a custom formatter for `std::span` that allows setting both an element formatting specifier and an element separator.
-- Platform-independent type markers.
 - Support for more argument types:
   - Pointers? (I.e. implicit conversion to `uintptr_t` and default formatting as hex.)
 - More transports:

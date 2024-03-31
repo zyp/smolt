@@ -23,6 +23,85 @@ namespace smolt {
         }
     }
 
+    // Type markers.
+    namespace type {
+        // Boolean.
+        struct b {};
+
+        template <std::same_as<bool> T>
+        constexpr b mark(T) {
+            return {};
+        }
+
+        constexpr void is_marked(b) {}
+
+        // Unsigned integral.
+        template <std::size_t N>
+        struct u {};
+
+        template <std::unsigned_integral T>
+        constexpr u<sizeof(T) * 8> mark(T) requires (!std::same_as<T, bool>) {
+            return {};
+        }
+
+        template <std::size_t N>
+        constexpr void is_marked(u<N>) {}
+
+        // Signed integral.
+        template <std::size_t N>
+        struct s {};
+
+        template <std::signed_integral T>
+        constexpr s<sizeof(T) * 8> mark(T) {
+            return {};
+        }
+
+        template <std::size_t N>
+        constexpr void is_marked(s<N>) {}
+
+        // Floating point.
+        template <std::size_t N>
+        struct f {};
+
+        template <std::floating_point T>
+        constexpr f<sizeof(T) * 8> mark(T) {
+            return {};
+        }
+
+        template <std::size_t N>
+        constexpr void is_marked(f<N>) {}
+
+        // Span.
+        template <typename T, std::size_t E>
+        struct span {};
+
+        template <typename T, std::size_t E>
+        constexpr span<decltype(mark(T{})), E> mark(std::span<T, E>) {
+            return {};
+        }
+
+        template <typename T, std::size_t E>
+        constexpr void is_marked(span<T, E>) {}
+
+        // String.
+        template <typename T>
+        struct string {};
+
+        template <typename T>
+        constexpr string<decltype(mark(T{}))> mark(std::basic_string_view<T>) {
+            return {};
+        }
+
+        template <typename T>
+        constexpr void is_marked(string<T>) {}
+
+        // Concept.
+        template <typename T>
+        concept marked = requires(T t) {
+            { is_marked(t) };
+        };
+    }
+
     // Metadata containers.
     namespace meta {
         // Format string.
@@ -38,7 +117,7 @@ namespace smolt {
         };
 
         // Format arguments.
-        template <typename... T>
+        template <type::marked... T>
         struct args_v0 {};
     }
 
@@ -219,13 +298,13 @@ namespace smolt {
         // Format string and arguments.
         template <meta::fmt_v0 str, typename... T>
         constexpr void log(T... args) const {
-            log_internal(tag<str, meta::args_v0<T...>{}>, args...);
+            log_internal(tag<str, meta::args_v0<decltype(type::mark(args))...>{}>, args...);
         }
 
         // Format string, location and arguments.
         template <meta::fmt_v0 str, meta::loc_v0 loc, typename... T>
         constexpr void log(T... args) const {
-            log_internal(tag<str, loc, meta::args_v0<T...>{}>, args...);
+            log_internal(tag<str, loc, meta::args_v0<decltype(type::mark(args))...>{}>, args...);
         }
 
         // Location only.

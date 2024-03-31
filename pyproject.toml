@@ -7,8 +7,8 @@ authors = [
 dependencies = [
     "click>=8.1.7",
     "pyelftools>=0.31",
-    "python-orbuculum>=0.0.1",
-    "cpp-symbol-parser>=0.1",
+    "python-orbuculum>=0.0.1,<0.1",
+    "cpp-symbol-parser>=0.1.1,<0.2",
 ]
 requires-python = ">=3.10"
 dynamic = ["version"]
