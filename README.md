@@ -46,7 +46,7 @@ The host side utilities can then use the tag ID to look up all the metadata from
   Can be added to the end of the build process to allow catching typos in format strings at compile time.
 - More checks and error handling.
 - Documentation.
-- Tests.
+- More tests.
 
 ## Usage
 

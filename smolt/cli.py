@@ -2,8 +2,8 @@ import click
 import pathlib
 import shlex
 
+from . import include_path
 from .meta import ELF
-
 from .itm import start_itm
 
 @click.group(context_settings = {'show_default': True})
@@ -36,7 +36,5 @@ def itm(elf, itm_channel, hostname, port):
 def cflags():
     '''Get header include path, pkg-config style.'''
 
-    path = pathlib.Path(__file__).parent.absolute() / 'include'
-
     # TODO: This should probably be handled better, I don't expect it'll work on windows.
-    print(shlex.quote(f'-I{path}'))
+    print(shlex.quote(f'-I{include_path}'))

@@ -222,7 +222,7 @@ namespace smolt {
         // Tag ID.
         template <concepts::transport transport_t>
         constexpr void serialize_tag(transport_t& transport, tag_id id) {
-            transport.log_tag(std::bit_cast<uint32_t>(id));
+            transport.log_tag(static_cast<uint32_t>(std::bit_cast<uintptr_t>(id)));
         }
 
         // Integral types <= 32b.
