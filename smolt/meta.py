@@ -17,6 +17,13 @@ parser = Parser()
 namespace_smolt_type = Name.from_string('smolt::type')
 namespace_smolt_meta = Name.from_string('smolt::meta')
 
+class ElementFormatter:
+    def __init__(self, data):
+        self.data = data
+    def __format__(self, format_spec):
+        element_spec, sep = format_spec.split('|', 1) if '|' in format_spec else (format_spec, ', ')
+        return sep.join(format(element, element_spec) for element in self.data)
+
 def type_struct_format(type):
     name = type.name
     size = type.template_args[0].value if type.template_args else None
@@ -46,7 +53,7 @@ def get_arg(type, it):
         for _ in range(0, st.size, 4):
             buf.extend((next(it) % 2**32).to_bytes(4, 'little'))
         values = st.unpack(buf[:st.size])
-        return list(values)
+        return ElementFormatter(values)
     elif type.name == 'string':
         assert type.template_args[0].template_args[0].value == 8
         size = next(it) % 2**32
