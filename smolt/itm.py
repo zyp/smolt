@@ -18,12 +18,13 @@ def start_itm(file, itm_channel, itm_addr):
 
         match packet:
             case swMsg() if packet.srcAddr == itm_channel:
-                tag = elf.tag(packet.value)
-                if tag is None:
-                    print(f'Got unknown tag: {packet.value:08x}')
+                tag_id = packet.value
+                if tag_id == 0:
+                    elf.refresh()
 
-                elif len(args) < len(tag.args):
-                    print(f'Insufficient arguments for tag: {tag.fmt:08x}, {args}')
+                tag = elf.tag(tag_id)
+                if tag is None:
+                    print(f'Got unknown tag: {tag_id:08x}')
 
                 else:
                     ts = time.strftime('%H:%M:%S')

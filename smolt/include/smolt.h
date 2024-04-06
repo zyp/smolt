@@ -21,6 +21,8 @@ namespace smolt {
             std::copy(s.begin(), s.end(), buf.begin());
             return buf;
         }
+
+        struct start_of_stream {};
     }
 
     // Type markers.
@@ -215,6 +217,8 @@ namespace smolt {
                 location.line(),
             };
         }
+
+        constexpr util::start_of_stream start_of_stream;
     }
 
     // Serializers.
@@ -311,6 +315,12 @@ namespace smolt {
         template <meta::loc_v0 loc>
         constexpr void log() const {
             log_internal(tag<loc>);
+        }
+
+        // Start of stream.
+        template <util::start_of_stream>
+        constexpr void log() const {
+            transport.log_tag(0);
         }
     };
 
